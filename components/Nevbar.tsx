@@ -104,6 +104,9 @@ export default function Navbar() {
                 <Link href="/admin/users">Admin</Link>
               </li>
               <li>
+                <Link href="/admin/Blogs">บทความ</Link>
+              </li>
+              <li>
                 <Link href="/admin/categories">เพิ่มหมวดหมู่</Link>
               </li>
               <li>
