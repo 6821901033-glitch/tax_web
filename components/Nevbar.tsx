@@ -74,7 +74,7 @@ export default function Navbar() {
     <nav className="navbar">
       <div className="container">
         <Link href="/" className="logo">
-          tax sop
+          ROBOT SHOP
         </Link>
 
         <button className="menu-btn" onClick={() => setMenuOpen(!menuOpen)}>
@@ -91,6 +91,9 @@ export default function Navbar() {
            <li>
             <Link href="/products">สินค้า</Link>
           </li>
+          <li>
+            <Link href="/blogs">บทความ</Link>
+          </li>
 
           {user && (
             <li>
@@ -104,7 +107,7 @@ export default function Navbar() {
                 <Link href="/admin/users">Admin</Link>
               </li>
               <li>
-                <Link href="/admin/Blogs">บทความ</Link>
+                <Link href="/admin/blogs">Blog</Link>
               </li>
               <li>
                 <Link href="/admin/categories">เพิ่มหมวดหมู่</Link>

@@ -6,15 +6,15 @@ export async function GET() {
   try {
     await connectDB();
 
-    const Blogs = await Blog.find()
+    const blog = await Blog.find()
       .sort({ title: 1 })
       .lean();
 
     return NextResponse.json({
-      Blogs,
+      blog,
     });
   } catch (error) {
-    // console.error("GET error:", error);
+    console.error("GET blog error:", error); // แก้ข้อความ log ให้ตรงกัน
 
     return NextResponse.json(
       { message: "ไม่สามารถโหลดข้อมูลได้" },
@@ -29,11 +29,12 @@ export async function POST(request: Request) {
 
     const body = await request.json();
 
+    // เปลี่ยนชื่อตัวแปรให้ตรงกับการใช้งานด้านล่าง หรือใช้ title / content ไปเลย
     const title = String(body.title ?? "").trim();
     const slug = String(body.slug ?? "")
       .trim()
       .toLowerCase();
-    const description = String(body.description ?? "").trim();
+    const content = String(body.content ?? "").trim(); // เปลี่ยนจาก description เป็น content
 
     if (!title || !slug) {
       return NextResponse.json(
@@ -46,23 +47,23 @@ export async function POST(request: Request) {
       $or: [{ title }, { slug }],
     });
 
-    if (existingBlog) {
+    if (existingBlog                        ) {
       return NextResponse.json(
         { message: "ชื่อหรือ slug นี้มีอยู่แล้ว" },
         { status: 409 }
       );
     }
 
-    const category = await Blog.create({
+    const blog = await Blog.create({
       title,
       slug,
-      description,
+      content,
     });
 
     return NextResponse.json(
       {
-        message: "เพิ่มหมวดข้อมูลสำเร็จ",
-        category,
+        message: "เพิ่มข้อมูลสำเร็จ",
+        blog,
       },
       { status: 201 }
     );
