@@ -86,7 +86,7 @@ export default function BlogForm() {
       </div>
 
       <div>
-        <label className="mb-1 block font-medium">Slug</label>
+        <label className="mb-1 block">Slug</label>
 
         <input
           type="text"

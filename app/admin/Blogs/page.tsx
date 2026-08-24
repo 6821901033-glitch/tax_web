@@ -1,9 +1,9 @@
-import BlogForm from "@/components/CategoryForm";
+import BlogForm from "@/components/BlogForm";
 
-export default function AdminCategoriesPage() {
+export default function BlogPage() {
   return (
-    <main className="p-6">
+    <div>
       <BlogForm />
-    </main>
+    </div>
   );
 }
