@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { isValidObjectId } from "mongoose";
 import { connectDB } from "@/library/mongodb";
 import Product from "@/models/Product";
 import Category from "@/models/Category";
@@ -65,24 +66,23 @@ export async function POST(request: Request) {
 
     const body = await request.json();
 
-    const {
-      name,
-      slug,
-      description,
-      price,
-      stock,
-      category,
-      imageUrl,
-      imagePublicId,
-      published,
-    } = body;
+    const name = String(body.name ?? "").trim();
+    const slug = String(body.slug ?? "").trim().toLowerCase();
+    const description = String(body.description ?? "").trim();
+    const price = Number(body.price);
+    const stock = Number(body.stock);
+    const category = String(body.category ?? "");
+    const imageUrl = String(body.imageUrl ?? "").trim();
+    const imagePublicId = String(body.imagePublicId ?? "").trim();
 
     if (
       !name ||
       !slug ||
       !description ||
-      price === undefined ||
-      stock === undefined ||
+      !Number.isFinite(price) ||
+      !Number.isInteger(stock) ||
+      price < 0 ||
+      stock < 0 ||
       !category ||
       !imageUrl ||
       !imagePublicId 
@@ -94,7 +94,7 @@ export async function POST(request: Request) {
     }
 
     const existingProduct = await Product.findOne({
-      slug: String(slug).trim().toLowerCase(),
+      slug,
     });
 
     if (existingProduct) {
@@ -104,9 +104,14 @@ export async function POST(request: Request) {
       );
     }
 
-    const categoryExists = await Category.exists({
-      _id: category,
-    });
+    if (!isValidObjectId(category)) {
+      return NextResponse.json(
+        { message: "ไม่พบหมวดหมู่ที่เลือก" },
+        { status: 400 }
+      );
+    }
+
+    const categoryExists = await Category.exists({ _id: category });
 
     if (!categoryExists) {
       return NextResponse.json(
@@ -116,15 +121,15 @@ export async function POST(request: Request) {
     }
 
     const product = await Product.create({
-      name: String(name).trim(),
-      slug: String(slug).trim().toLowerCase(),
-      description: String(description).trim(),
-      price: Number(price),
-      stock: Number(stock),
+      name,
+      slug,
+      description,
+      price,
+      stock,
       category,
       imageUrl,
       imagePublicId, 
-      published: published ?? true,
+      published: body.published ?? true,
     });
 
     const populatedProduct = await Product.findById(product._id)
