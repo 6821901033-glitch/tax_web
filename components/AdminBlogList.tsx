@@ -1,9 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import BlogCard, {
-  type BlogCardData,
-} from "@/components/BlogCard";
+import BlogCard, {type BlogCardData,} from "@/components/BlogCard";
 
 type AdminBlogListProps = {
   initialBlogs: BlogCardData[];
@@ -15,9 +13,7 @@ type BlogFormData = {
   content: string;
 };
 
-export default function AdminBlogList({
-  initialBlogs,
-}: AdminBlogListProps) {
+export default function AdminBlogList({ initialBlogs,}: AdminBlogListProps) {
   const [blogs, setBlogs] = useState(initialBlogs);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<BlogFormData>({

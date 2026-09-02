@@ -1,17 +1,3 @@
-/* import BlogCard from "@/components/BlogCard";
-import BlogForm from "@/components/BlogForm";
-
-
-export default function BlogPage() {
-  return (
-    <div>
-      <BlogForm />
-      <BlogCard />
-    </div>
-  );
-}
- */
-
 import { connectDB } from "@/library/mongodb";
 import Blog from "@/models/Blog";
 import AdminBlogList from "@/components/AdminBlogList";

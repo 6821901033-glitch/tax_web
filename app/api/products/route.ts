@@ -4,12 +4,16 @@ import { connectDB } from "@/library/mongodb";
 import Product from "@/models/Product";
 import Category from "@/models/Category";
 
+// ฟังก์ชันสำหรับ Escape ตัวอักษรพิเศษใน Regex
+function escapeRegex(text: string) {
+  return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+}
+
 export async function GET(request: NextRequest) {
   try {
     await connectDB();
 
     const searchParams = request.nextUrl.searchParams;
-
     const category = searchParams.get("category");
     const search = searchParams.get("search");
     const includeUnpublished =
@@ -21,24 +25,23 @@ export async function GET(request: NextRequest) {
       filter.published = true;
     }
 
+    // ป้องกัน App พังกรณีส่ง Category ID ไม่ถูกต้อง
     if (category) {
-      filter.category = category;
+      if (isValidObjectId(category)) {
+        filter.category = category;
+      } else {
+        return NextResponse.json(
+          { message: "รูปแบบหมวดหมู่ไม่ถูกต้อง" },
+          { status: 400 }
+        );
+      }
     }
 
     if (search) {
+      const sanitizedSearch = escapeRegex(search);
       filter.$or = [
-        {
-          name: {
-            $regex: search,
-            $options: "i",
-          },
-        },
-        {
-          description: {
-            $regex: search,
-            $options: "i",
-          },
-        },
+        { name: { $regex: sanitizedSearch, $options: "i" } },
+        { description: { $regex: sanitizedSearch, $options: "i" } },
       ];
     }
 
@@ -47,9 +50,7 @@ export async function GET(request: NextRequest) {
       .sort({ createdAt: -1 })
       .lean();
 
-    return NextResponse.json({
-      products,
-    });
+    return NextResponse.json({ products });
   } catch (error) {
     console.error("GET products error:", error);
 
@@ -60,7 +61,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     await connectDB();
 
@@ -88,14 +89,12 @@ export async function POST(request: Request) {
       !imagePublicId 
     ) {
       return NextResponse.json(
-        { message: "กรุณากรอกข้อมูลสินค้าให้ครบ" },
+        { message: "กรุณากรอกข้อมูลสินค้าให้ครบถ้วนและถูกต้อง" },
         { status: 400 }
       );
     }
 
-    const existingProduct = await Product.findOne({
-      slug,
-    });
+    const existingProduct = await Product.findOne({ slug }).lean();
 
     if (existingProduct) {
       return NextResponse.json(
@@ -106,7 +105,7 @@ export async function POST(request: Request) {
 
     if (!isValidObjectId(category)) {
       return NextResponse.json(
-        { message: "ไม่พบหมวดหมู่ที่เลือก" },
+        { message: "รูปแบบหมวดหมู่ไม่ถูกต้อง" },
         { status: 400 }
       );
     }
@@ -116,7 +115,7 @@ export async function POST(request: Request) {
     if (!categoryExists) {
       return NextResponse.json(
         { message: "ไม่พบหมวดหมู่ที่เลือก" },
-        { status: 400 }
+        { status: 404 }
       );
     }
 
@@ -128,8 +127,8 @@ export async function POST(request: Request) {
       stock,
       category,
       imageUrl,
-      imagePublicId, 
-      published: body.published ?? true,
+      imagePublicId,
+      published: Boolean(body.published ?? true),
     });
 
     const populatedProduct = await Product.findById(product._id)
